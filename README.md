@@ -1,6 +1,16 @@
 # Touchy
 
-A universal macOS menu bar & Liquid Glass driver that brings full multi-touch, gesture recognition, 4-point calibration, adaptive on-screen touch keyboard, and DDC/CI hardware auto-rotation to external USB-C/HDMI touch displays on macOS.
+A universal macOS menu bar & desktop driver that brings full multi-touch, gesture recognition, 4-point calibration, adaptive on-screen touch keyboard, and DDC/CI hardware auto-rotation to external USB-C/HDMI touch displays on macOS.
+
+<p align="center">
+  <img src="assets/control-window.png" width="860" alt="Touchy Live Monitor and Digitizer Scope" />
+</p>
+
+<p align="center">
+  <img src="assets/touch-gestures.png" width="540" alt="Touchy Touch and Stylus Settings" />
+  &nbsp;&nbsp;
+  <img src="assets/menubar-popover.png" width="290" alt="Touchy Menu Bar Popover" />
+</p>
 
 ## Quick Install (One Command)
 
