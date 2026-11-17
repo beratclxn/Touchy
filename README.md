@@ -1,0 +1,26 @@
+# Touchy
+
+A universal macOS menu bar & Liquid Glass driver that brings full multi-touch, gesture recognition, 4-point calibration, and DDC/CI hardware auto-rotation to external USB-C/HDMI touch displays on macOS.
+
+## Build & Install (no Xcode needed, only Command Line Tools)
+
+```sh
+./build.sh install
+```
+
+On first launch macOS will ask for two permissions in **System Settings → Privacy & Security**:
+1. **Accessibility** → Touchy (needed to synthesize clicks, drags, scrolling, and zoom)
+2. **Input Monitoring** → Touchy (if requested by macOS to read USB HID touch reports)
+
+## Supported Gestures
+
+| Touch | Action |
+|---|---|
+| 1-finger tap | Left click (double-tap → double-click) |
+| 1-finger drag | Click & drag / text selection / drawing |
+| 1-finger long-press (0.85 s) | Right click |
+| 2-finger tap | Right click |
+| 2-finger drag | Smooth pixel scroll + momentum (inertia) |
+| 2-finger pinch / spread | Pinch-to-zoom (Safari, Preview, Maps, Figma, etc.) |
+| 3-finger swipe left / right | Switch macOS Spaces |
+| 3-finger swipe up / down | Mission Control / App Exposé |

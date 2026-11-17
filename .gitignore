@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Build artifacts & caches
+build/
+.build/
+.swiftpm/
+*.app
+*.dSYM
+*.o
+*.pcm
+*.swiftmodule
+*.swiftdoc
+*.swiftsourceinfo
