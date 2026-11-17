@@ -1,21 +1,13 @@
 import AppKit
 import SwiftUI
 
-/// Menu Bar Bento Control Center popover matching the frosted-glass Bento layout.
+/// Compact Menu Bar Control Center popover using the Touchy graphite ramp and nested radii.
 struct MenuBarBentoView: View {
     @ObservedObject var state: AppState
     var onClosePopover: (() -> Void)?
 
-    private let shellBg = Color(white: 0.92, opacity: 0.95)
-    private let cardBg = Color(white: 0.97, opacity: 0.86)
-    private let pillBg = Color(white: 0.85, opacity: 0.90)
-    private let circleOffBg = Color(white: 0.82, opacity: 0.95)
-    private let circleOnBg = Color(white: 0.14, opacity: 1.0)
-    private let textPrimary = Color(white: 0.12)
-    private let textSecondary = Color(white: 0.46)
-
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             topDeviceBannerCard
 
             if state.bentoTab == .home {
@@ -25,155 +17,168 @@ struct MenuBarBentoView: View {
                 bentoSystemCard
             }
 
+            Spacer(minLength: 0)
+
             bottomNavigationBar
         }
-        .padding(14)
-        .frame(width: 358)
+        .padding(12)
+        .frame(width: 340, height: 348)
         .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .fill(shellBg)
-            }
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(TouchyTheme.pageBg)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 34, style: .continuous)
-                .stroke(Color.white.opacity(0.75), lineWidth: 1.2)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(TouchyTheme.hairline, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    // MARK: - 1. Top Banner Card
+    // MARK: - 1. Top Device Bar
 
     private var topDeviceBannerCard: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .interpolation(.high)
-                .frame(width: 42, height: 42)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .shadow(color: Color.black.opacity(0.14), radius: 3, x: 0, y: 1)
+                .frame(width: 28, height: 28)
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Touchy")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(textPrimary)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(TouchyTheme.textPrimary)
                     .lineLimit(1)
 
-                Text(bannerSubtitle)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(textSecondary)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    TouchyStatusDot(color: statusDotColor)
+                    Text(bannerSubtitle)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(TouchyTheme.textSecondary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 4)
 
-            HStack(spacing: 8) {
-                Button {
+            HStack(spacing: 6) {
+                topActionButton(
+                    icon: "keyboard",
+                    isActive: state.isKeyboardVisible,
+                    help: "Show or hide touch keyboard"
+                ) {
                     onClosePopover?()
                     state.onToggleKeyboardNow?()
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(state.isKeyboardVisible ? circleOnBg : circleOffBg)
-                            .frame(width: 36, height: 36)
-                        Image(systemName: "keyboard.fill")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(state.isKeyboardVisible ? .white : Color(white: 0.25))
-                    }
                 }
-                .buttonStyle(.plain)
-                .help("Show / Hide Touch Keyboard")
 
-                topCircleButton(icon: "arrow.clockwise", help: "Rescan USB-C Touch & Displays") {
+                topActionButton(
+                    icon: "arrow.clockwise",
+                    isActive: false,
+                    help: "Rescan USB-C touch and displays"
+                ) {
                     state.onRescan?()
-                    state.flashBentoHint("Devices Rescanned")
+                    state.flashBentoHint("Devices rescanned")
                 }
 
-                Button {
+                topActionButton(
+                    icon: "power",
+                    isActive: state.enabled,
+                    help: state.enabled ? "Disable touch input" : "Enable touch input"
+                ) {
                     state.enabled.toggle()
-                    state.flashBentoHint(state.enabled ? "Touch Enabled" : "Touch Disabled")
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(state.enabled ? circleOnBg : circleOffBg)
-                            .frame(width: 36, height: 36)
-                        Image(systemName: "power")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(state.enabled ? .white : Color(white: 0.30))
-                    }
+                    state.flashBentoHint(state.enabled ? "Touch enabled" : "Touch paused")
                 }
-                .buttonStyle(.plain)
-                .help(state.enabled ? "Disable Touch Input" : "Enable Touch Input")
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 13)
-        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(cardBg))
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(TouchyTheme.cardBg)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(TouchyTheme.hairline, lineWidth: 1)
+        )
+    }
+
+    private var statusDotColor: Color {
+        if !state.enabled { return TouchyTheme.textMuted }
+        if !state.accessibilityOK { return TouchyTheme.warning }
+        return state.isConnected ? TouchyTheme.positive : TouchyTheme.textMuted
     }
 
     private var bannerSubtitle: String {
         if let hint = state.bentoStatusHint { return hint }
-        if !state.enabled { return "Touch Disabled" }
-        if !state.accessibilityOK { return "Accessibility Required" }
+        if !state.enabled { return "Touch paused" }
+        if !state.accessibilityOK { return "Accessibility needed" }
         return state.isConnected
-            ? "\(state.systemDeviceName) • Connected"
-            : "Waiting for Touch Display"
+            ? state.systemDeviceName
+            : "Waiting for display"
     }
 
-    private func topCircleButton(icon: String, help: String, action: @escaping () -> Void) -> some View {
+    private func topActionButton(
+        icon: String,
+        isActive: Bool,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            ZStack {
-                Circle().fill(circleOffBg).frame(width: 36, height: 36)
-                Image(systemName: icon)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Color(white: 0.25))
-            }
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .regular))
+                .foregroundColor(isActive ? TouchyTheme.accentInk : TouchyTheme.textSecondary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isActive ? TouchyTheme.turquoise : TouchyTheme.raisedBg)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(isActive ? Color.clear : TouchyTheme.hairline, lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
         .help(help)
     }
 
-    // MARK: - 2. 2×4 Bento Quick-Toggle Grid (8 Unique Feature Toggles)
+    // MARK: - 2. 2×4 Quick-Toggle Grid
 
     private var bentoTileGrid: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                bentoTile(icon: "pencil.and.outline", title: "Palm Reject", isOn: state.palmRejection, help: "Universal Stylus Palm Rejection") {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                bentoTile(icon: "pencil.and.outline", title: "Palm reject", isOn: state.palmRejection, help: "Stylus palm rejection") {
                     state.palmRejection.toggle()
-                    state.flashBentoHint("Stylus Palm Rejection: \(state.palmRejection ? "On" : "Off")")
+                    state.flashBentoHint("Palm rejection: \(state.palmRejection ? "On" : "Off")")
                 }
-                bentoTile(icon: "hand.tap.fill", title: "Right Click", isOn: state.longPressRightClick, help: "Long press with one finger for right-click") {
+                bentoTile(icon: "cursorarrow.click", title: "Right click", isOn: state.longPressRightClick, help: "Long press for right-click") {
                     state.longPressRightClick.toggle()
-                    state.flashBentoHint("Long Press Right Click: \(state.longPressRightClick ? "On" : "Off")")
+                    state.flashBentoHint("Long press right-click: \(state.longPressRightClick ? "On" : "Off")")
                 }
-                bentoTile(icon: "arrow.up.and.down", title: "Scroll", isOn: state.twoFingerScroll, help: "Two-finger smooth scrolling") {
+                bentoTile(icon: "scroll", title: "Scroll", isOn: state.twoFingerScroll, help: "Two-finger smooth scrolling") {
                     state.twoFingerScroll.toggle()
-                    state.flashBentoHint("Two-Finger Scroll: \(state.twoFingerScroll ? "On" : "Off")")
+                    state.flashBentoHint("Two-finger scroll: \(state.twoFingerScroll ? "On" : "Off")")
                 }
-                bentoTile(icon: "wind", title: "Momentum", isOn: state.momentum, help: "Smooth scrolling inertia after lifting fingers") {
+                bentoTile(icon: "wind", title: "Momentum", isOn: state.momentum, help: "Scroll inertia after lifting fingers") {
                     state.momentum.toggle()
-                    state.flashBentoHint("Scroll Momentum: \(state.momentum ? "On" : "Off")")
+                    state.flashBentoHint("Scroll momentum: \(state.momentum ? "On" : "Off")")
                 }
             }
 
-            HStack(spacing: 10) {
-                bentoTile(icon: "arrow.up.left.and.arrow.down.right", title: "Pinch Zoom", isOn: state.pinchZoom, help: "Two-finger pinch to zoom") {
+            HStack(spacing: 8) {
+                bentoTile(icon: "plus.magnifyingglass", title: "Pinch zoom", isOn: state.pinchZoom, help: "Two-finger pinch to zoom") {
                     state.pinchZoom.toggle()
-                    state.flashBentoHint("Pinch to Zoom: \(state.pinchZoom ? "On" : "Off")")
+                    state.flashBentoHint("Pinch to zoom: \(state.pinchZoom ? "On" : "Off")")
                 }
-                bentoTile(icon: "rectangle.3.group.fill", title: "3-Finger", isOn: state.threeFingerSwipe, help: "Three-finger swipe for Spaces & Mission Control") {
+                bentoTile(icon: "rectangle.3.group", title: "3-finger", isOn: state.threeFingerSwipe, help: "Three-finger Spaces & Mission Control") {
                     state.threeFingerSwipe.toggle()
-                    state.flashBentoHint("3-Finger Spaces: \(state.threeFingerSwipe ? "On" : "Off")")
+                    state.flashBentoHint("3-finger gestures: \(state.threeFingerSwipe ? "On" : "Off")")
                 }
-                bentoTile(icon: "arrow.up.arrow.down.circle.fill", title: "Invert Scroll", isOn: state.invertScroll, help: "Invert natural scroll direction") {
+                bentoTile(icon: "arrow.up.arrow.down", title: "Invert scroll", isOn: state.invertScroll, help: "Reverse natural scroll direction") {
                     state.invertScroll.toggle()
-                    state.flashBentoHint("Invert Scroll: \(state.invertScroll ? "On" : "Off")")
+                    state.flashBentoHint("Invert scroll: \(state.invertScroll ? "On" : "Off")")
                 }
-                bentoTile(icon: "dock.rectangle", title: "Dock Icon", isOn: state.showInDock, help: "Show or hide Touchy in macOS Dock") {
+                bentoTile(icon: "dock.rectangle", title: "Dock icon", isOn: state.showInDock, help: "Show Touchy in macOS Dock") {
                     state.showInDock.toggle()
-                    state.flashBentoHint("Dock Icon: \(state.showInDock ? "Visible" : "Hidden")")
+                    state.flashBentoHint("Dock icon: \(state.showInDock ? "Visible" : "Hidden")")
                 }
             }
         }
@@ -182,53 +187,61 @@ struct MenuBarBentoView: View {
     private func bentoTile(icon: String, title: String, isOn: Bool, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 6) {
-                ZStack {
-                    Circle().fill(isOn ? circleOnBg : circleOffBg).frame(width: 36, height: 36)
-                    Image(systemName: icon)
-                        .font(.system(size: 14.5, weight: .semibold))
-                        .foregroundColor(isOn ? .white : Color(white: 0.34))
-                }
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(isOn ? TouchyTheme.textPrimary : TouchyTheme.textMuted)
+                    .frame(width: 20, height: 20)
+
                 Text(title)
-                    .font(.system(size: 10.5, weight: isOn ? .bold : .semibold))
-                    .foregroundColor(isOn ? textPrimary : textSecondary)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(isOn ? TouchyTheme.textPrimary : TouchyTheme.textSecondary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 78)
-            .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(cardBg))
+            .frame(height: 60)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isOn ? TouchyTheme.raisedBg : TouchyTheme.cardBg)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(isOn ? TouchyTheme.turquoise.opacity(0.45) : TouchyTheme.hairline, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
         .help(help)
     }
 
-    // MARK: - 3. Middle Display, Rotation & Live Touch Card
-
-    // MARK: - 3. Display & Rotation Card
+    // MARK: - 3. Display & Rotation Bar
 
     private var middleDisplayTouchCard: some View {
         HStack(spacing: 8) {
             Button {
                 state.cycleDisplay()
             } label: {
-                HStack(spacing: 9) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color(white: 0.16))
-                            .frame(width: 28, height: 28)
-                        Image(systemName: "display")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.white)
-                    }
+                HStack(spacing: 8) {
+                    Image(systemName: "display")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(TouchyTheme.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(TouchyTheme.raisedBg)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(TouchyTheme.hairline, lineWidth: 1)
+                        )
 
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(state.hasExternalDisplay ? state.activeDisplayName : "No External Display")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(textPrimary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(state.hasExternalDisplay ? state.activeDisplayName : "No external display")
+                            .font(.system(size: 12.5, weight: .medium))
+                            .foregroundColor(TouchyTheme.textPrimary)
                             .lineLimit(1)
-                        Text(state.screens.count > 1 ? "External Display • Switch" : "External Display Only")
-                            .font(.system(size: 9.5, weight: .medium))
-                            .foregroundColor(textSecondary)
+                        Text(state.screens.count > 1 ? "Switch display" : "External touch")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TouchyTheme.textMuted)
                             .lineLimit(1)
                     }
                     Spacer(minLength: 4)
@@ -238,66 +251,84 @@ struct MenuBarBentoView: View {
 
             Button {
                 state.autoRotate.toggle()
-                state.flashBentoHint("Auto-Rotate (G-Sensor): \(state.autoRotate ? "On" : "Off")")
+                state.flashBentoHint("Auto-rotate: \(state.autoRotate ? "On" : "Off")")
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "crop.rotate")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 11, weight: .regular))
                     Text(state.autoRotate ? "Auto" : "Manual")
-                        .font(.system(size: 11.5, weight: .bold))
+                        .font(.system(size: 11, weight: .medium))
                 }
-                .foregroundColor(state.autoRotate ? .white : Color(white: 0.22))
-                .padding(.horizontal, 9)
-                .padding(.vertical, 6)
-                .background(Capsule().fill(state.autoRotate ? circleOnBg : Color.white.opacity(0.85)))
+                .foregroundColor(state.autoRotate ? TouchyTheme.accentInk : TouchyTheme.textSecondary)
+                .padding(.horizontal, 8)
+                .frame(height: 26)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(state.autoRotate ? TouchyTheme.turquoise : TouchyTheme.raisedBg)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(state.autoRotate ? Color.clear : TouchyTheme.hairline, lineWidth: 1)
+                )
             }
             .buttonStyle(.plain)
-            .help("Toggle G-Sensor Auto-Rotate")
+            .help("Toggle DDC/CI auto-rotate")
 
             Button {
                 state.cycleRotation()
             } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "rotate.right")
-                        .font(.system(size: 11, weight: .bold))
-                    Text("\(state.extraRotation)°")
-                        .font(.system(size: 12, weight: .bold))
-                }
-                .foregroundColor(Color(white: 0.22))
-                .padding(.horizontal, 9)
-                .padding(.vertical, 6)
-                .background(Capsule().fill(Color.white.opacity(0.85)))
+                Text("\(state.extraRotation)°")
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .monospacedDigit()
+                    .foregroundColor(TouchyTheme.textSecondary)
+                    .padding(.horizontal, 8)
+                    .frame(height: 26)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(TouchyTheme.raisedBg)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(TouchyTheme.hairline, lineWidth: 1)
+                    )
             }
             .buttonStyle(.plain)
-            .help("Rotate touch orientation (0° / 90° / 180° / 270°)")
+            .help("Rotate touch coordinates (0° / 90° / 180° / 270°)")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(cardBg))
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(TouchyTheme.cardBg)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(TouchyTheme.hairline, lineWidth: 1)
+        )
     }
 
     // MARK: - System Tab Content
 
     private var bentoSystemCard: some View {
         let isCustomCal = !Settings.shared.calibrationTransform.isIdentity
-        return VStack(spacing: 9) {
+        return VStack(spacing: 4) {
             bentoSystemRow(
-                icon: state.accessibilityOK ? "checkmark.shield.fill" : "exclamationmark.triangle.fill",
-                title: "Accessibility Access",
-                value: state.accessibilityOK ? "Active ✓" : "Grant…"
+                icon: state.accessibilityOK ? "checkmark.shield" : "exclamationmark.triangle",
+                title: "Accessibility access",
+                value: state.accessibilityOK ? "Granted" : "Grant",
+                valueColor: state.accessibilityOK ? TouchyTheme.positive : TouchyTheme.warning
             ) {
                 onClosePopover?()
                 state.onOpenAccessibility?()
             }
 
             bentoSystemRow(
-                icon: isCustomCal ? "arrow.counterclockwise.circle.fill" : "scope",
-                title: isCustomCal ? "Reset Calibration" : "Start 4-Point Calibration",
-                value: isCustomCal ? "Reset to Default" : "Run…"
+                icon: isCustomCal ? "arrow.counterclockwise" : "scope",
+                title: isCustomCal ? "Reset calibration" : "4-point calibration",
+                value: isCustomCal ? "Reset" : "Start"
             ) {
                 if isCustomCal {
                     state.onResetCalibration?()
-                    state.flashBentoHint("Reset to Factory Default")
+                    state.flashBentoHint("Calibration reset")
                 } else {
                     onClosePopover?()
                     state.onCalibrate?()
@@ -305,16 +336,16 @@ struct MenuBarBentoView: View {
             }
 
             bentoSystemRow(
-                icon: "lock.shield.fill",
-                title: "Exclusive Access (Seize)",
+                icon: "lock.shield",
+                title: "Exclusive access (seize)",
                 value: state.seizeDevice ? "On" : "Off"
             ) {
                 state.seizeDevice.toggle()
             }
 
             bentoSystemRow(
-                icon: "power.circle.fill",
-                title: "Launch at Login",
+                icon: "power",
+                title: "Launch at login",
                 value: state.launchAtLogin ? "On" : "Off"
             ) {
                 state.onToggleLogin?()
@@ -322,33 +353,58 @@ struct MenuBarBentoView: View {
 
             bentoSystemRow(
                 icon: "doc.on.clipboard",
-                title: "Diagnostics Report",
-                value: state.copiedToast ? "Copied! ✓" : "Copy"
+                title: "Diagnostics report",
+                value: state.copiedToast ? "Copied" : "Copy",
+                valueColor: state.copiedToast ? TouchyTheme.positive : TouchyTheme.textSecondary
             ) {
                 state.onCopyDiagnostics?()
-                state.flashBentoHint("Diagnostics Copied to Clipboard")
+                state.flashBentoHint("Diagnostics copied")
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(cardBg))
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(TouchyTheme.cardBg)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(TouchyTheme.hairline, lineWidth: 1)
+        )
     }
 
-    private func bentoSystemRow(icon: String, title: String, value: String, action: @escaping () -> Void) -> some View {
+    private func bentoSystemRow(
+        icon: String,
+        title: String,
+        value: String,
+        valueColor: Color = TouchyTheme.textSecondary,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                ZStack {
-                    Circle().fill(circleOffBg).frame(width: 30, height: 30)
-                    Image(systemName: icon)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color(white: 0.24))
-                }
-                Text(title).font(.system(size: 13, weight: .semibold)).foregroundColor(textPrimary)
-                Spacer()
-                Text(value).font(.system(size: 12, weight: .semibold)).foregroundColor(textSecondary)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(TouchyTheme.textMuted)
+                    .frame(width: 20, height: 20)
+
+                Text(title)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(TouchyTheme.textPrimary)
+                    .lineLimit(1)
+
+                Spacer(minLength: 8)
+
+                Text(value)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .monospacedDigit()
+                    .foregroundColor(valueColor)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.black.opacity(0.045)))
+            .padding(.horizontal, 8)
+            .frame(height: 36)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(TouchyTheme.raisedBg.opacity(0.65))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -357,50 +413,65 @@ struct MenuBarBentoView: View {
 
     private var bottomNavigationBar: some View {
         HStack(spacing: 8) {
-            // Segmented Tab Switcher (Home / System)
             HStack(spacing: 2) {
-                bentoNavTab(tab: .home, icon: "square.grid.2x2.fill", title: "Home")
+                bentoNavTab(tab: .home, icon: "square.grid.2x2", title: "Home")
                 bentoNavTab(tab: .system, icon: "cpu", title: "System")
             }
             .padding(3)
-            .background(Capsule().fill(cardBg).shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1))
+            .frame(height: 32)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(TouchyTheme.cardBg)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(TouchyTheme.hairline, lineWidth: 1)
+            )
 
-            Spacer(minLength: 6)
+            Spacer(minLength: 4)
 
-            // Settings Window Launcher Button
             Button {
                 onClosePopover?()
                 state.onOpenControlPanel?()
             } label: {
-                HStack(spacing: 5) {
+                HStack(spacing: 6) {
                     Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 11.5, weight: .bold))
+                        .font(.system(size: 12, weight: .regular))
                     Text("Settings…")
-                        .font(.system(size: 11.5, weight: .semibold))
+                        .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
                         .fixedSize()
                 }
-                .foregroundColor(textPrimary)
+                .foregroundColor(TouchyTheme.textPrimary)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 6.5)
-                .background(Capsule().fill(cardBg).shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1))
+                .frame(height: 32)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(TouchyTheme.cardBg)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(TouchyTheme.hairline, lineWidth: 1)
+                )
             }
             .buttonStyle(.plain)
-            .help("Open Full Touchy Settings Window (⌘,)")
+            .help("Open Touchy settings window (⌘,)")
 
-            // Quit App Button
             Button {
                 state.onQuit?()
             } label: {
-                ZStack {
-                    Circle()
-                        .fill(cardBg)
-                        .frame(width: 32, height: 32)
-                        .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
-                    Image(systemName: "power")
-                        .font(.system(size: 11.5, weight: .bold))
-                        .foregroundColor(Color.red.opacity(0.75))
-                }
+                Image(systemName: "power")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(TouchyTheme.danger)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(TouchyTheme.cardBg)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(TouchyTheme.hairline, lineWidth: 1)
+                    )
             }
             .buttonStyle(.plain)
             .help("Quit Touchy (⌘Q)")
@@ -414,16 +485,19 @@ struct MenuBarBentoView: View {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 11, weight: isSelected ? .bold : .semibold))
+                    .font(.system(size: 11.5, weight: .regular))
                 Text(title)
-                    .font(.system(size: 11.5, weight: isSelected ? .bold : .semibold))
+                    .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
             }
-            .foregroundColor(isSelected ? textPrimary : textSecondary)
+            .foregroundColor(isSelected ? TouchyTheme.textPrimary : TouchyTheme.textSecondary)
             .padding(.horizontal, 10)
-            .padding(.vertical, 5.5)
-            .background(Capsule().fill(isSelected ? pillBg : Color.clear))
+            .frame(height: 26)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isSelected ? TouchyTheme.raisedBg : Color.clear)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -452,8 +526,8 @@ final class MenuBarPopoverController {
                 self?.close()
             }
             let hosting = NSHostingView(rootView: rootView)
-            let panelWidth: CGFloat = 358
-            let panelHeight: CGFloat = 384
+            let panelWidth: CGFloat = 340
+            let panelHeight: CGFloat = 348
             hosting.frame = NSRect(x: 0, y: 0, width: panelWidth, height: panelHeight)
 
             let p = BentoPanel(

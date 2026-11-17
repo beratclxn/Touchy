@@ -29,21 +29,21 @@ enum SidebarTab: String, CaseIterable, Identifiable {
 
     var subtitle: String {
         switch self {
-        case .overview: return "Real-time multi-touch & stylus visualizer and live hardware telemetry"
-        case .display:  return "Target monitor mapping, G-Sensor auto-rotation, and 4-point calibration"
-        case .gestures: return "Universal stylus palm rejection, right-click, scrolling, zoom, and Spaces"
-        case .system:   return "macOS Accessibility permissions, USB-C HID connection, startup, and logs"
-        case .about:    return "Version details, verified hardware disclosure, architecture, and legal notice"
+        case .overview: return "Real-time digitizer coordinate scope and hardware status"
+        case .display:  return "Target display assignment, DDC/CI orientation, and 4-point calibration"
+        case .gestures: return "Stylus palm rejection, tap behavior, scrolling, zoom, and Spaces"
+        case .system:   return "Accessibility authorization, IOHID connection, login item, and logs"
+        case .about:    return "Build metadata, verified reference hardware, and legal disclosures"
         }
     }
 
     var icon: String {
         switch self {
-        case .overview: return "sparkles.tv.fill"
+        case .overview: return "viewfinder.rectangular"
         case .display:  return "display"
-        case .gestures: return "hand.draw.fill"
-        case .system:   return "checkmark.shield.fill"
-        case .about:    return "info.circle.fill"
+        case .gestures: return "hand.draw"
+        case .system:   return "checkmark.shield"
+        case .about:    return "info.circle"
         }
     }
 

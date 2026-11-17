@@ -2,12 +2,32 @@ import AppKit
 import SwiftUI
 
 enum TouchyTheme {
+    // Primary single accent (#21CCC2 turquoise) & compatibility constants
     static let aquaLight = Color(red: 0.45, green: 0.92, blue: 0.88)  // #73EBE0
     static let turquoise = Color(red: 0.13, green: 0.80, blue: 0.76)  // #21CCC2
     static let tealDeep = Color(red: 0.02, green: 0.50, blue: 0.54)   // #058089
     static let cyanGlow = Color(red: 0.40, green: 0.95, blue: 0.95)
-    static let emerald = Color(red: 0.20, green: 0.86, blue: 0.58)
-    static let amber = Color(red: 0.99, green: 0.72, blue: 0.22)
+    static let emerald = Color(red: 0.30, green: 0.76, blue: 0.54)    // #4CC38A
+    static let amber = Color(red: 0.90, green: 0.60, blue: 0.20)      // #E59934
+    static let accentInk = Color(red: 0.03, green: 0.08, blue: 0.08)  // #081414 (>4.5:1 on #21CCC2)
+
+    // Graphite / Ink neutral ramp (adaptive Dark / Light)
+    static let sidebarBg     = adaptive(dark: 0x0F1012, light: 0xF3F4F6)
+    static let pageBg        = adaptive(dark: 0x141518, light: 0xFAFAFA)
+    static let cardBg        = adaptive(dark: 0x1A1C20, light: 0xFFFFFF)
+    static let raisedBg      = adaptive(dark: 0x23262B, light: 0xF1F2F4)
+    static let hairline      = adaptiveAlpha(darkWhite: 1.0, darkAlpha: 0.08, lightWhite: 0.0, lightAlpha: 0.08)
+
+    static let textPrimary   = adaptive(dark: 0xEDEDEF, light: 0x171717)
+    static let textSecondary = adaptive(dark: 0xA1A4AB, light: 0x525252)
+    static let textMuted     = adaptive(dark: 0x7E828C, light: 0x737373)
+
+    static let positive      = adaptive(dark: 0x4CC38A, light: 0x16A34A)
+    static let warning       = adaptive(dark: 0xE59934, light: 0xD97706)
+    static let danger        = adaptive(dark: 0xE5484D, light: 0xDC2626)
+
+    // Studio canvas surface for the live XY digitizer scope
+    static let scopeBg       = Color(red: 0.043, green: 0.055, blue: 0.067) // #0B0E11
 
     static var accentGradient: LinearGradient {
         LinearGradient(
@@ -16,138 +36,163 @@ enum TouchyTheme {
             endPoint: .bottomTrailing
         )
     }
-}
 
-struct TouchySquircleIcon: View {
-    let systemName: String
-    let colors: [Color]
-    var size: CGFloat = 28
+    private static func adaptive(dark: UInt32, light: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            let hex = isDark ? dark : light
+            let r = CGFloat((hex >> 16) & 0xFF) / 255.0
+            let g = CGFloat((hex >> 8) & 0xFF) / 255.0
+            let b = CGFloat(hex & 0xFF) / 255.0
+            return NSColor(calibratedRed: r, green: g, blue: b, alpha: 1.0)
+        })
+    }
 
-    var body: some View {
-        let radius = size * 0.28
-        ZStack {
-            RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .fill(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: size, height: size)
-                .shadow(color: (colors.last ?? .blue).opacity(0.35), radius: 4, x: 0, y: 2)
-                .overlay(
-                    RoundedRectangle(cornerRadius: radius, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.55), Color.white.opacity(0.08)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-
-            Image(systemName: systemName)
-                .font(.system(size: size * 0.48, weight: .semibold))
-                .foregroundColor(.white)
-                .shadow(color: Color.black.opacity(0.20), radius: 1, x: 0, y: 1)
-        }
+    private static func adaptiveAlpha(
+        darkWhite: CGFloat, darkAlpha: CGFloat,
+        lightWhite: CGFloat, lightAlpha: CGFloat
+    ) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            return isDark
+                ? NSColor(calibratedWhite: darkWhite, alpha: darkAlpha)
+                : NSColor(calibratedWhite: lightWhite, alpha: lightAlpha)
+        })
     }
 }
 
+/// Signature monospaced hardware register / coordinate pill tag (`6pt` radius, `1px` hairline).
+struct TouchyMonoTag: View {
+    let text: String
+    var color: Color = TouchyTheme.textSecondary
+    var background: Color = TouchyTheme.raisedBg
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 11, weight: .regular, design: .monospaced))
+            .monospacedDigit()
+            .foregroundColor(color)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(background)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(TouchyTheme.hairline, lineWidth: 1)
+            )
+            .lineLimit(1)
+    }
+}
+
+/// Crisp `6×6` status indicator dot without glow or blur.
+struct TouchyStatusDot: View {
+    var color: Color = TouchyTheme.positive
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: 6, height: 6)
+    }
+}
+
+/// Monochrome `20×20` aligned line icon column.
+struct TouchySquircleIcon: View {
+    let systemName: String
+    var colors: [Color] = []
+    var size: CGFloat = 20
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 14, weight: .regular))
+            .foregroundColor(TouchyTheme.textSecondary)
+            .frame(width: max(size, 20), height: max(size, 20))
+    }
+}
+
+/// Flat graphite card container with `20pt` padding, `12pt` radius, and a `1px` hairline border.
 struct TouchyGlassCard<Content: View>: View {
     var title: String? = nil
     var subtitle: String? = nil
+    var tag: String? = nil
     var icon: String? = nil
-    var iconColors: [Color] = [TouchyTheme.aquaLight, TouchyTheme.tealDeep]
+    var iconColors: [Color] = []
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            if let title {
-                HStack(spacing: 10) {
-                    if let icon {
-                        TouchySquircleIcon(systemName: icon, colors: iconColors, size: 26)
-                    }
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(title)
-                            .font(.system(size: 13.5, weight: .semibold))
-                            .foregroundColor(.primary)
+        VStack(alignment: .leading, spacing: 16) {
+            if title != nil || subtitle != nil || tag != nil {
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let title {
+                            Text(title)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(TouchyTheme.textPrimary)
+                        }
                         if let subtitle {
                             Text(subtitle)
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(TouchyTheme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    Spacer()
+
+                    Spacer(minLength: 8)
+
+                    if let tag {
+                        TouchyMonoTag(text: tag)
+                    }
                 }
-                .padding(.bottom, 2)
             }
 
             content()
         }
-        .padding(16)
+        .padding(20)
         .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.07),
-                                TouchyTheme.aquaLight.opacity(0.03),
-                                Color.clear,
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(TouchyTheme.cardBg)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.22),
-                            Color.white.opacity(0.07),
-                            TouchyTheme.aquaLight.opacity(0.14),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(TouchyTheme.hairline, lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.14), radius: 12, x: 0, y: 6)
     }
 }
 
+/// Aligned settings row with a `20×20` monochrome line icon, label + caption, and system switch.
 struct TouchyToggleRow: View {
     let icon: String
-    let colors: [Color]
+    var colors: [Color] = []
     let title: String
     let subtitle: String
     @Binding var isOn: Bool
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            TouchySquircleIcon(systemName: icon, colors: colors, size: 28)
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(TouchyTheme.textMuted)
+                .frame(width: 20, height: 20)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.primary)
+                    .foregroundColor(TouchyTheme.textPrimary)
                 Text(subtitle)
-                    .font(.system(size: 11.5))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(TouchyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer(minLength: 12)
+            Spacer(minLength: 16)
 
             Toggle("", isOn: $isOn)
                 .toggleStyle(.switch)
                 .tint(TouchyTheme.turquoise)
                 .labelsHidden()
         }
-        .padding(.vertical, 3)
+        .padding(.vertical, 4)
     }
 }
 
