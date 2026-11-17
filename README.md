@@ -2,15 +2,19 @@
 
 A universal macOS menu bar & Liquid Glass driver that brings full multi-touch, gesture recognition, 4-point calibration, adaptive on-screen touch keyboard, and DDC/CI hardware auto-rotation to external USB-C/HDMI touch displays on macOS.
 
-## Build & Install (no Xcode needed, only Command Line Tools)
+## Quick Install (One Command)
+
+Paste this into **Terminal** to automatically download, build, and install **Touchy** to `/Applications`:
 
 ```sh
-git clone https://github.com/beratclxn/Touchy.git
-cd Touchy
-./build.sh install
+curl -fsSL https://raw.githubusercontent.com/beratclxn/Touchy/main/install.sh | zsh
 ```
 
-> If Xcode Command Line Tools are not installed yet, run `xcode-select --install` first.
+### Build from Source Manually
+
+```sh
+git clone https://github.com/beratclxn/Touchy.git && cd Touchy && ./build.sh install
+```
 
 On first launch macOS will ask for two permissions in **System Settings → Privacy & Security**:
 1. **Accessibility** → Touchy (needed to synthesize clicks, drags, scrolling, and zoom)
